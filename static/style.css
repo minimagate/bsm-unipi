@@ -389,6 +389,7 @@ h3 { font-family: var(--sans); font-weight: 600; font-size: 1.05rem; }
 .content li::marker, .voce-body li::marker { color: var(--muted); }
 
 .content a, .voce-body a { text-decoration-thickness: 1px; text-underline-offset: 0.16em; }
+.content hr, .voce-body hr { display: none; }
 
 /* Table of contents on lesson/voce pages */
 .toc-mobile {
