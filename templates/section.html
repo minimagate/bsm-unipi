@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}{{ section.title }} · {{ config.title }}{% endblock title %}
+{% block content %}
+<nav class="crumbs"><a href="{{ get_url(path='@/_index.md') }}">Home</a> <span>›</span> {{ section.title }}</nav>
+<h1>{{ section.title }}</h1>
+<h2 class="list-title">Indice</h2>
+<ol class="lesson-list">
+{% for p in section.pages | reverse %}
+<li><a href="{{ p.permalink }}"><time datetime="{{ p.date }}">{{ m::it_date(d=p.date) }}</time><span class="lesson-title">{{ p.title }}</span></a></li>
+{% endfor %}
+</ol>
+{% endblock content %}

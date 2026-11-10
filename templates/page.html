@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}{{ page.title }} · {{ config.title }}{% endblock title %}
+{% block content %}
+{% set course = get_section(path=page.ancestors | last) %}
+<nav class="crumbs"><a href="{{ get_url(path='@/_index.md') }}">Home</a> <span>›</span> <a href="{{ course.permalink }}">{{ course.title }}</a></nav>
+<article class="lesson">
+<h1>{{ page.title }}</h1>
+<p class="lesson-date"><time datetime="{{ page.date }}">{{ m::it_date(d=page.date) }}</time> · {{ course.title }}</p>
+{% if page.toc %}
+<details class="toc" open>
+<summary>Indice</summary>
+<ol>
+{% for h2 in page.toc %}
+<li><a href="#{{ h2.id }}">{{ h2.title }}</a>
+{% if h2.children %}<ol>{% for h3 in h2.children %}<li><a href="#{{ h3.id }}">{{ h3.title }}</a></li>{% endfor %}</ol>{% endif %}
+</li>
+{% endfor %}
+</ol>
+</details>
+{% endif %}
+<div class="content">
+{{ page.content | safe }}
+</div>
+</article>
+<nav class="pager">
+{% if page.higher %}<a class="prev" href="{{ page.higher.permalink }}"><small>Precedente</small><span>{{ page.higher.title }}</span></a>{% else %}<span></span>{% endif %}
+{% if page.lower %}<a class="next" href="{{ page.lower.permalink }}"><small>Successiva</small><span>{{ page.lower.title }}</span></a>{% endif %}
+</nav>
+{% endblock content %}

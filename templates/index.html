@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block content %}
+<header class="site-head">
+<h1>{{ config.title }}</h1>
+<p class="subtitle">Appunti del corso di laurea in Matematica — Università di Pisa</p>
+</header>
+<ul class="course-grid">
+{% for s in section.subsections %}
+{% set course = get_section(path=s) %}
+<li class="course-card">
+<a href="{{ course.permalink }}">
+<span class="course-name">{{ course.title }}</span>
+<span class="course-meta">{{ course.pages | length }} lezioni{% if course.pages %} · ultima {{ m::it_date(d=course.pages[0].date) }}{% endif %}</span>
+</a>
+</li>
+{% endfor %}
+</ul>
+{% endblock content %}

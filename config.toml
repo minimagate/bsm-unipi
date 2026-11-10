@@ -1,0 +1,16 @@
+base_url = "https://minimagate.github.io/bsm-unipi"
+title = "BSM · UniPi"
+description = "Appunti del corso di laurea in Matematica — Università di Pisa"
+default_language = "it"
+compile_sass = false
+build_search_index = false
+generate_feeds = false
+
+[markdown]
+smart_punctuation = false
+
+[markdown.highlighting]
+theme = "dracula"
+
+[link_checker]
+internal_level = "warn"

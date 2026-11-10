@@ -1,0 +1,1 @@
+{% macro it_date(d) %}{% set parts = d | split(pat="-") %}{% set mesi = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"] %}{% set mi = parts[1] | int - 1 %}{{ parts[2] | int }} {{ mesi[mi] }} {{ parts[0] }}{% endmacro %}
