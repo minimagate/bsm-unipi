@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Tutte le voci · {{ config.title }}{% endblock title %}
+{% block meta %}<meta name="description" content="Indice A–Z delle voci: definizioni, teoremi, oggetti e metodi.">{% endblock meta %}
+{% block content %}
+<article class="article voci-index" aria-labelledby="page-title">
+  <header class="article-head">
+    <nav class="crumbs" aria-label="Percorso">
+      <a href="{{ get_url(path="@/_index.md") }}">Pagina principale</a>
+      <span aria-hidden="true">›</span>
+      <span>Tutte le voci</span>
+    </nav>
+    <h1 id="page-title">Tutte le voci</h1>
+    <p class="article-meta">{{ section.pages | length }} voci in ordine alfabetico</p>
+  </header>
+
+  {% if section.pages | length == 0 %}
+  <p class="muted">Nessuna voce ancora.</p>
+  {% else %}
+  <nav class="letter-bar" aria-label="Salta alla lettera">
+    {% for l in section.extra.letters %}<a href="#lettera-{{ l | lower }}">{{ l }}</a>{% endfor %}
+  </nav>
+
+  {% for l in section.extra.letters %}
+  <section class="letter-group" id="lettera-{{ l | lower }}" aria-labelledby="h-{{ l | lower }}">
+    <h2 id="h-{{ l | lower }}">{{ l }}</h2>
+    <ul class="voce-list">
+      {% for v in section.pages %}{% if v.extra.letter == l %}
+      <li class="voce-entry">
+        <a class="voce-title" href="{{ v.permalink }}">{{ v.title }}</a>
+        {% if v.extra.categoria %}<span class="cat-badge">{{ v.extra.categoria }}</span>{% endif %}
+        {% if v.description %}<p class="voce-sintesi">{{ v.description }}</p>{% endif %}
+      </li>
+      {% endif %}{% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+  {% endif %}
+</article>
+{% endblock content %}

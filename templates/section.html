@@ -1,13 +1,44 @@
 {% extends "base.html" %}
 {% import "macros.html" as m %}
 {% block title %}{{ section.title }} · {{ config.title }}{% endblock title %}
+{% block meta %}<meta name="description" content="Lezioni e voci di {{ section.title }}">{% endblock meta %}
 {% block content %}
-<nav class="crumbs"><a href="{{ get_url(path='@/_index.md') }}">Home</a> <span>›</span> {{ section.title }}</nav>
-<h1>{{ section.title }}</h1>
-<h2 class="list-title">Indice</h2>
-<ol class="lesson-list">
-{% for p in section.pages | reverse %}
-<li><a href="{{ p.permalink }}"><time datetime="{{ p.date }}">{{ m::it_date(d=p.date) }}</time><span class="lesson-title">{{ p.title }}</span></a></li>
-{% endfor %}
-</ol>
+{% set voci = get_section(path="voci/_index.md") %}
+{% set lessons = section.pages | sort(attribute="date") %}
+{% set nless = lessons | length %}
+{% set_global nvoci = 0 %}
+{% for v in voci.pages %}{% if v.extra.corsi is containing(section.title) %}{% set_global nvoci = nvoci + 1 %}{% endif %}{% endfor %}
+<article class="article portal" aria-labelledby="page-title">
+  <header class="article-head portal-head">
+    <nav class="crumbs" aria-label="Percorso">
+      <a href="{{ get_url(path="@/_index.md") }}">Pagina principale</a>
+      <span aria-hidden="true">›</span>
+      <span>{{ section.title }}</span>
+    </nav>
+    <h1 id="page-title">{{ section.title }}</h1>
+    <p class="article-meta">Corso · {{ nless }} lezioni · {{ nvoci }} voci{% if nless > 0 %}{% set first_l = lessons | first %}{% set last_l = lessons | last %}{% if first_l.date and last_l.date %} · dal <time datetime="{{ first_l.date }}">{{ m::it_date(d=first_l.date) }}</time> al <time datetime="{{ last_l.date }}">{{ m::it_date(d=last_l.date) }}</time>{% endif %}{% endif %}</p>
+  </header>
+
+  <section class="portal-box" aria-labelledby="lezioni-title">
+    <h2 class="box-title" id="lezioni-title">Lezioni</h2>
+    {% if nless > 0 %}
+    <ol class="lesson-list">
+      {% for p in lessons %}{{ m::lesson_item(p=p) }}{% endfor %}
+    </ol>
+    {% else %}
+    <p class="muted">Nessuna lezione ancora.</p>
+    {% endif %}
+  </section>
+
+  <section class="portal-box" aria-labelledby="voci-corso-title">
+    <h2 class="box-title" id="voci-corso-title">Voci del corso</h2>
+    {% set_global shown = 0 %}
+    <ul class="voci-cols">
+      {% for v in voci.pages %}{% if v.extra.corsi is containing(section.title) %}{% set_global shown = shown + 1 %}
+      <li><a href="{{ v.permalink }}">{{ v.title }}</a>{% if v.extra.categoria %} <span class="ib-muted">{{ v.extra.categoria }}</span>{% endif %}</li>
+      {% endif %}{% endfor %}
+    </ul>
+    {% if shown == 0 %}<p class="muted">Nessuna voce collegata a questo corso.</p>{% endif %}
+  </section>
+</article>
 {% endblock content %}

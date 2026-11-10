@@ -1,19 +1,87 @@
 {% extends "base.html" %}
 {% import "macros.html" as m %}
+{% block title %}{{ config.title }}{% endblock title %}
 {% block content %}
-<header class="site-head">
-<h1>{{ config.title }}</h1>
-<p class="subtitle">Appunti del corso di laurea in Matematica — Università di Pisa</p>
-</header>
-<ul class="course-grid">
-{% for s in section.subsections %}
-{% set course = get_section(path=s) %}
-<li class="course-card">
-<a href="{{ course.permalink }}">
-<span class="course-name">{{ course.title }}</span>
-<span class="course-meta">{{ course.pages | length }} lezioni{% if course.pages %} · ultima {{ m::it_date(d=course.pages[0].date) }}{% endif %}</span>
-</a>
-</li>
-{% endfor %}
-</ul>
+{% set voci = get_section(path="voci/_index.md") %}
+{% set_global nlezioni = 0 %}
+{% set_global ncorsi = 0 %}
+{% for s in section.subsections %}{% set sec = get_section(path=s) %}{% if sec.extra.kind == "corso" %}
+  {% set nsec = sec.pages | length %}
+  {% set_global nlezioni = nlezioni + nsec %}
+  {% set_global ncorsi = ncorsi + 1 %}
+{% endif %}{% endfor %}
+{% set nvoci = voci.pages | length %}
+
+<section class="welcome" aria-labelledby="page-title">
+  <h1 id="page-title">Benvenuto su BSM·UniPi</h1>
+  <p class="welcome-lead">gli appunti liberi del corso di laurea in Matematica dell'Università di Pisa</p>
+  <p class="welcome-stats"><strong>{{ nlezioni }}</strong> lezioni · <strong>{{ nvoci }}</strong> voci · <strong>{{ ncorsi }}</strong> corsi</p>
+</section>
+
+<div class="home-grid">
+
+  <section class="box" aria-labelledby="box-corsi">
+    <h2 class="box-title" id="box-corsi">Corsi</h2>
+    {% if ncorsi == 0 %}<p class="muted">Nessun corso ancora.</p>{% endif %}
+    <ul class="course-list">
+      {% set_global corsi_ordinati = [] %}
+      {% for s in section.subsections %}{% set sec = get_section(path=s) %}{% if sec.extra.kind == "corso" %}{% set_global corsi_ordinati = corsi_ordinati | concat(with=[sec]) %}{% endif %}{% endfor %}
+      {% for sec in corsi_ordinati | sort(attribute="title") %}
+      <li>
+        <a href="{{ sec.permalink }}">{{ sec.title }}</a>
+        {% set nsec = sec.pages | length %}
+        {% set lastl = sec.pages | sort(attribute="date") | last %}
+        <span class="course-meta">{{ nsec }} lezioni{% if nsec > 0 and lastl.date %} · ultima {{ m::it_date(d=lastl.date) }}{% endif %}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="box" aria-labelledby="box-evidenza">
+    <h2 class="box-title" id="box-evidenza">Voce in evidenza</h2>
+    {% if nvoci > 0 %}
+    {% set idx = nlezioni % nvoci %}
+    {% set ev = voci.pages[idx] %}
+    <article class="featured">
+      <h3 class="featured-title"><a href="{{ ev.permalink }}">{{ ev.title }}</a></h3>
+      {% if ev.extra.categoria %}<p class="ib-muted">{{ ev.extra.categoria }}</p>{% endif %}
+      {% if ev.description %}<p>{{ ev.description }}</p>{% endif %}
+      <p class="more"><a href="{{ ev.permalink }}">Leggi la voce</a></p>
+    </article>
+    {% else %}
+    <p class="muted">Nessuna voce ancora.</p>
+    {% endif %}
+  </section>
+
+  <section class="box" aria-labelledby="box-recenti">
+    <h2 class="box-title" id="box-recenti">Ultime lezioni</h2>
+    {% if section.extra.recent | length > 0 %}
+    <ul class="recent-list">
+      {% for p in section.extra.recent %}{% set lez = get_page(path=p, required=false) %}{% if lez %}
+      <li>
+        <time datetime="{{ lez.date }}">{% if lez.date %}{{ m::it_date(d=lez.date) }}{% else %}s.d.{% endif %}</time>
+        <a href="{{ lez.permalink }}">{{ lez.title }}</a>
+        {% set lsec = get_section(path=lez.ancestors | last) %}
+        <span class="course-meta">{{ lsec.title }}</span>
+      </li>
+      {% endif %}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">Nessuna lezione ancora.</p>
+    {% endif %}
+  </section>
+
+  <section class="box" aria-labelledby="box-az">
+    <h2 class="box-title" id="box-az">Indice A–Z</h2>
+    {% if voci.extra.letters | length > 0 %}
+    <ul class="letter-chips">
+      {% for l in voci.extra.letters %}<li><a href="{{ voci.permalink }}#lettera-{{ l | lower }}">{{ l }}</a></li>{% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">Nessuna voce ancora.</p>
+    {% endif %}
+    <p class="more"><a href="{{ voci.permalink }}">Tutte le voci →</a></p>
+  </section>
+
+</div>
 {% endblock content %}

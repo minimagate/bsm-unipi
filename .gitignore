@@ -1,4 +1,6 @@
 content/
 public/
 university/
+static/search.json
 .DS_Store
+__pycache__/

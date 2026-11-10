@@ -1,30 +1,52 @@
 {% extends "base.html" %}
 {% import "macros.html" as m %}
 {% block title %}{{ page.title }} · {{ config.title }}{% endblock title %}
+{% block sidebar_extra %}
+{% if page.toc %}
+<nav class="toc-desktop" aria-labelledby="toc-title">
+  <h2 class="side-title" id="toc-title">Indice</h2>
+  {{ m::toc_list(toc=page.toc) }}
+</nav>
+{% endif %}
+{% endblock sidebar_extra %}
 {% block content %}
 {% set course = get_section(path=page.ancestors | last) %}
-<nav class="crumbs"><a href="{{ get_url(path='@/_index.md') }}">Home</a> <span>›</span> <a href="{{ course.permalink }}">{{ course.title }}</a></nav>
-<article class="lesson">
-<h1>{{ page.title }}</h1>
-<p class="lesson-date"><time datetime="{{ page.date }}">{{ m::it_date(d=page.date) }}</time> · {{ course.title }}</p>
-{% if page.toc %}
-<details class="toc" open>
-<summary>Indice</summary>
-<ol>
-{% for h2 in page.toc %}
-<li><a href="#{{ h2.id }}">{{ h2.title }}</a>
-{% if h2.children %}<ol>{% for h3 in h2.children %}<li><a href="#{{ h3.id }}">{{ h3.title }}</a></li>{% endfor %}</ol>{% endif %}
-</li>
-{% endfor %}
-</ol>
-</details>
-{% endif %}
-<div class="content">
-{{ page.content | safe }}
-</div>
+<article class="article lesson" aria-labelledby="page-title">
+  <header class="article-head">
+    <nav class="crumbs" aria-label="Percorso">
+      <a href="{{ get_url(path="@/_index.md") }}">Pagina principale</a>
+      <span aria-hidden="true">›</span>
+      <a href="{{ course.permalink }}">{{ course.title }}</a>
+    </nav>
+    <h1 id="page-title">{{ page.title }}</h1>
+    <p class="article-meta">Lezione · <a href="{{ course.permalink }}">{{ course.title }}</a>{% if page.date %} · <time datetime="{{ page.date }}">{{ m::it_date(d=page.date) }}</time>{% endif %}</p>
+  </header>
+
+  {% if page.toc %}
+  <details class="toc-mobile">
+    <summary>Indice</summary>
+    {{ m::toc_list(toc=page.toc) }}
+  </details>
+  {% endif %}
+
+  <div class="content">
+  {{ page.content | safe }}
+  </div>
+
+  {% if page.extra.voci | length > 0 %}
+  <section class="voci-box" aria-labelledby="voci-box-title">
+    <h2 class="box-title" id="voci-box-title">Voci in questa lezione</h2>
+    <ul class="voci-list">
+      {% for p in page.extra.voci %}{% set v = get_page(path=p, required=false) %}{% if v %}
+      <li><a href="{{ v.permalink }}">{{ v.title }}</a>{% if v.description %}<span class="voci-sintesi">{{ v.description }}</span>{% endif %}</li>
+      {% endif %}{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <nav class="pager" aria-label="Lezioni del corso">
+    {% if page.higher %}<a class="pager-prev" href="{{ page.higher.permalink }}"><small>Precedente</small><span>{{ page.higher.title }}</span></a>{% else %}<span></span>{% endif %}
+    {% if page.lower %}<a class="pager-next" href="{{ page.lower.permalink }}"><small>Successiva</small><span>{{ page.lower.title }}</span></a>{% endif %}
+  </nav>
 </article>
-<nav class="pager">
-{% if page.higher %}<a class="prev" href="{{ page.higher.permalink }}"><small>Precedente</small><span>{{ page.higher.title }}</span></a>{% else %}<span></span>{% endif %}
-{% if page.lower %}<a class="next" href="{{ page.lower.permalink }}"><small>Successiva</small><span>{{ page.lower.title }}</span></a>{% endif %}
-</nav>
 {% endblock content %}

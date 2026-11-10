@@ -3,16 +3,95 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1E1E1E" media="(prefers-color-scheme: dark)">
+{% block meta %}<meta name="description" content="{{ config.description }}">{% endblock meta %}
 <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+<link rel="icon" href="{{ get_url(path='favicon.svg') }}" type="image/svg+xml">
+<link rel="preload" href="{{ get_url(path='fonts/LibertinusSerif-400.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ get_url(path='style.css') }}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem("bsm-theme");
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  } catch (e) { /* storage unavailable: follow the system theme */ }
+})();
+</script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="{{ get_url(path='math.js') }}"></script>
+<script defer src="{{ get_url(path='ui.js') }}"></script>
+<script defer src="{{ get_url(path='search.js') }}"></script>
+<script defer src="{{ get_url(path='preview.js') }}"></script>
 </head>
 <body>
-<main class="wrap">
-{% block content %}{% endblock content %}
-</main>
+{% set root = get_section(path="_index.md") %}
+{% set voci = get_section(path="voci/_index.md") %}
+{% set cu = current_url | default(value="") %}
+{% set logo = load_data(path="static/logo.svg", format="plain", required=false) %}
+
+<a class="skip-link" href="#contenuto">Vai al contenuto</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <button class="icon-btn nav-toggle" type="button" aria-label="Apri la navigazione" aria-controls="sidebar" aria-expanded="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+
+    <a class="brand" href="{{ root.permalink }}" aria-label="BSM·UniPi, pagina principale">
+      {% if logo %}<span class="brand-logo" aria-hidden="true">{{ logo | safe }}</span>{% endif %}
+      <span class="wordmark">
+        <span class="wm-name">BSM·UniPi</span>
+        <span class="wm-tag">Gli appunti liberi di Matematica</span>
+      </span>
+    </a>
+
+    <div class="search" role="search">
+      <input id="site-search" class="search-input" type="search" placeholder="Cerca lezioni e voci"
+             aria-label="Cerca lezioni e voci" autocomplete="off" spellcheck="false"
+             role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results"
+             data-index="{{ get_url(path='search.json') }}">
+      <kbd class="search-key" aria-hidden="true">/</kbd>
+      <ul id="search-results" class="search-results" role="listbox" aria-label="Risultati della ricerca" hidden></ul>
+    </div>
+
+    <button class="icon-btn theme-toggle" type="button" aria-label="Cambia tema chiaro/scuro" title="Cambia tema">
+      <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside id="sidebar" class="sidebar">
+    <nav class="sidebar-nav" aria-labelledby="nav-title">
+      <h2 class="side-title" id="nav-title">Navigazione</h2>
+      <ul class="side-list">
+        <li><a href="{{ root.permalink }}"{% if cu == root.permalink %} aria-current="page"{% endif %}>Pagina principale</a></li>
+        <li><a href="{{ voci.permalink }}"{% if cu is starting_with(voci.permalink) %} aria-current="page"{% endif %}>Tutte le voci</a></li>
+      </ul>
+      <h3 class="side-sub">Corsi</h3>
+      <ul class="side-list">
+        {% set_global corsi_nav = [] %}
+        {% for s in root.subsections %}{% set sec = get_section(path=s) %}{% if sec.extra.kind == "corso" %}{% set_global corsi_nav = corsi_nav | concat(with=[sec]) %}{% endif %}{% endfor %}
+        {% for sec in corsi_nav | sort(attribute="title") %}
+        <li><a href="{{ sec.permalink }}"{% if cu is starting_with(sec.permalink) %} aria-current="page"{% endif %}>{{ sec.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+    {% block sidebar_extra %}{% endblock sidebar_extra %}
+  </aside>
+  <div class="nav-backdrop" hidden></div>
+
+  <main id="contenuto" class="content-area" tabindex="-1">
+    {% block content %}{% endblock content %}
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>Contenuti tratti dagli appunti personali delle lezioni · Generato con Zola</p>
+</footer>
 </body>
 </html>

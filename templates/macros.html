@@ -1,1 +1,13 @@
-{% macro it_date(d) %}{% set parts = d | split(pat="-") %}{% set mesi = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"] %}{% set mi = parts[1] | int - 1 %}{{ parts[2] | int }} {{ mesi[mi] }} {{ parts[0] }}{% endmacro %}
+{% macro it_date(d) %}{% set parts = d | split(pat="-") %}{% set mesi = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"] %}{% set mi = parts[1] | int - 1 %}{{ parts[2] | int }} {{ mesi[mi] }} {{ parts[0] }}{% endmacro it_date %}
+
+{% macro toc_list(toc) %}
+<ol class="toc-list">
+{% for h2 in toc %}
+  <li><a href="#{{ h2.id }}">{{ h2.title }}</a>
+  {% if h2.children %}<ol>{% for h3 in h2.children %}<li><a href="#{{ h3.id }}">{{ h3.title }}</a></li>{% endfor %}</ol>{% endif %}
+  </li>
+{% endfor %}
+</ol>
+{% endmacro toc_list %}
+
+{% macro lesson_item(p) %}<li class="lesson-item"><time datetime="{{ p.date }}">{% if p.date %}{{ self::it_date(d=p.date) }}{% else %}s.d.{% endif %}</time><a href="{{ p.permalink }}">{{ p.title }}</a></li>{% endmacro lesson_item %}

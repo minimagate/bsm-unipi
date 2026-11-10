@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}{{ page.title }} · {{ config.title }}{% endblock title %}
+{% block meta %}<meta name="description" content="{{ page.description | default(value=config.description) }}">{% endblock meta %}
+{% block sidebar_extra %}
+{% if page.toc %}
+<nav class="toc-desktop" aria-labelledby="toc-title">
+  <h2 class="side-title" id="toc-title">Indice</h2>
+  {{ m::toc_list(toc=page.toc) }}
+</nav>
+{% endif %}
+{% endblock sidebar_extra %}
+{% block content %}
+{% set voci = get_section(path="voci/_index.md") %}
+<article class="article voce" aria-labelledby="page-title">
+  <header class="article-head">
+    <nav class="crumbs" aria-label="Percorso">
+      <a href="{{ get_url(path="@/_index.md") }}">Pagina principale</a>
+      <span aria-hidden="true">›</span>
+      <a href="{{ voci.permalink }}">Tutte le voci</a>
+    </nav>
+    <h1 id="page-title">{{ page.title }}</h1>
+    <p class="article-meta">Voce{% if page.extra.categoria %} · {{ page.extra.categoria }}{% endif %}</p>
+  </header>
+
+  <aside class="infobox" aria-label="Scheda della voce">
+    <div class="ib-head">{{ page.title }}</div>
+    <table class="ib-table">
+      <tbody>
+        <tr><th scope="row">Categoria</th><td class="ib-categoria">{{ page.extra.categoria | default(value="") }}</td></tr>
+        {% if page.extra.corsi | length > 0 %}
+        <tr><th scope="row">Corsi</th><td>
+          {% for c in page.extra.corsi %}{% set cs = c | slugify %}{% set cp = get_section(path=cs ~ "/_index.md", required=false) %}{% if cp %}<a href="{{ cp.permalink }}">{{ c }}</a>{% else %}{{ c }}{% endif %}{% if not loop.last %}<br>{% endif %}{% endfor %}
+        </td></tr>
+        {% endif %}
+        {% if page.extra.introdotta_in_path %}{% set intro = get_page(path=page.extra.introdotta_in_path, required=false) %}{% if intro %}
+        <tr><th scope="row">Introdotta in</th><td><a href="{{ intro.permalink }}">{{ intro.title }}</a>{% if intro.date %}<br><span class="ib-muted">{{ m::it_date(d=intro.date) }}</span>{% endif %}</td></tr>
+        {% endif %}{% endif %}
+        {% if page.extra.alias | length > 0 %}
+        <tr><th scope="row">Alias</th><td>{{ page.extra.alias | join(sep=", ") }}</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </aside>
+
+  {% if page.toc %}
+  <details class="toc-mobile">
+    <summary>Indice</summary>
+    {{ m::toc_list(toc=page.toc) }}
+  </details>
+  {% endif %}
+
+  <div class="voce-body">
+  {{ page.content | safe }}
+  </div>
+
+  {% if page.extra.backlinks | length > 0 %}
+  <section class="dove-compare" aria-labelledby="dove-compare-title">
+    <h2 id="dove-compare-title">Dove compare</h2>
+    {% set root = get_section(path="_index.md") %}{% for s in root.subsections %}{% set sec = get_section(path=s) %}{% if sec.extra.kind == "corso" %}
+    {% set cslug = s | split(pat="/") | first %}
+    {% set_global seen = false %}
+    {% for b in page.extra.backlinks %}{% set parts = b | split(pat="/") %}{% if parts[0] == cslug %}{% set lez = get_page(path=b, required=false) %}{% if lez %}
+      {% if not seen %}<h3 class="dove-course"><a href="{{ sec.permalink }}">{{ sec.title }}</a></h3><ul class="dove-list">{% set_global seen = true %}{% endif %}
+      <li>{% if lez.date %}<time datetime="{{ lez.date }}">{{ m::it_date(d=lez.date) }}</time> · {% endif %}<a href="{{ lez.permalink }}">{{ lez.title }}</a></li>
+    {% endif %}{% endif %}{% endfor %}
+    {% if seen %}</ul>{% endif %}
+    {% endif %}{% endfor %}
+    {% set_global seen_v = false %}
+    {% for b in page.extra.backlinks %}{% set parts = b | split(pat="/") %}{% if parts[0] == "voci" %}{% set vb = get_page(path=b, required=false) %}{% if vb %}
+      {% if not seen_v %}<h3 class="dove-course">Altre voci</h3><ul class="dove-list">{% set_global seen_v = true %}{% endif %}
+      <li><a href="{{ vb.permalink }}">{{ vb.title }}</a></li>
+    {% endif %}{% endif %}{% endfor %}
+    {% if seen_v %}</ul>{% endif %}
+  </section>
+  {% endif %}
+
+  <nav class="pager" aria-label="Voci">
+    <span></span>
+    <a class="pager-next" href="{{ voci.permalink }}"><small>Indice</small><span>Tutte le voci</span></a>
+  </nav>
+</article>
+{% endblock content %}
